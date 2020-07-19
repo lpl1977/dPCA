@@ -1,8 +1,6 @@
 function [optimalLambda, optimalLambdas] = dpca_optimizeLambda(Xfull, ...
     Xtrial, numOfTrials, varargin)
 
-% Lee Lovejoy editing this to use timeSplits 
-%
 % optimalLambda = dpca_optimizeLambda(X, Xtrial, numOfTrials, ...)
 % computes optimal regularization parameter. X is the data array. Xtrial 
 % is an array storing single trials. It has one extra dimension as compared 
@@ -152,29 +150,19 @@ for rep = 1:options.numRep
     	CnoiseTrain = 0;
     end	
     
-    
-    % Lee Lovejoy edit July 19, 2020--add options to use time splits to
-    % marginalization    
     XtestCen = bsxfun(@minus, Xtest, mean(Xtest(:,:),2));
     XtestMargs = dpca_marginalize(XtestCen, 'combinedParams', options.combinedParams, ...
-        'ifFlat', 'yes', ...
-        'timeSplits', options.timeSplits, ...
-        'timeParameter', options.timeParameter,  ...
-        'notToSplit', options.notToSplit);
+                    'ifFlat', 'yes', ...
+                    
                 
+                );
     for i=1:length(XtestMargs)
         margTestVar(i) = sum(XtestMargs{i}(:).^2);
     end
     
-    
-    % Lee Lovejoy edit July 19, 2020--add options to use time splits to
-    % marginalization        
     XtrainCen = bsxfun(@minus, Xtrain, mean(Xtrain(:,:),2));
     XtrainMargs = dpca_marginalize(XtrainCen, 'combinedParams', options.combinedParams, ...
-                    'ifFlat', 'yes', ...
-        'timeSplits', options.timeSplits, ...
-        'timeParameter', options.timeParameter,  ...
-        'notToSplit', options.notToSplit);
+                    'ifFlat', 'yes');
     for i=1:length(XtrainMargs)
         margTrainVar(i) = sum(XtrainMargs{i}(:).^2);
     end
@@ -185,19 +173,12 @@ for rep = 1:options.numRep
         margVar_toNormalize = margTrainVar;
     end
 
-    
-    % Lee Lovejoy edit July 19, 2020--add otpions to use time splits to
-    % dpca call below.
-    
     for l = 1:length(options.lambdas)
         fprintf('.')
         
         [W,V,whichMarg] = dpca(Xtrain, options.numComps, ...
             'combinedParams', options.combinedParams, ...
-            'lambda', options.lambdas(l), 'Cnoise', CnoiseTrain, ...
-        'timeSplits', options.timeSplits, ...
-        'timeParameter', options.timeParameter,  ...
-        'notToSplit', options.notToSplit,'order','no');
+            'lambda', options.lambdas(l), 'Cnoise', CnoiseTrain);
                         
         cumError = 0;
         for i=1:length(XtestMargs)
